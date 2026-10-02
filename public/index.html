@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Angvey — Agent OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#0b0f19;--card:#121826;--accent:#6366f1;--text:#e2e8f0;--muted:#94a3b8;--ok:#22c55e;--err:#ef4444}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:24px}
+.wrap{max-width:720px;margin:0 auto}
+h1{font-size:1.75rem;font-weight:800;margin-bottom:4px}
+.sub{color:var(--muted);margin-bottom:24px;font-size:.95rem}
+.card{background:var(--card);border-radius:12px;padding:20px;border:1px solid #1e293b}
+textarea{width:100%;min-height:90px;background:#0f172a;border:1px solid #334155;border-radius:8px;color:var(--text);padding:12px;font:inherit;resize:vertical}
+.row{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+button{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 18px;font-weight:600;cursor:pointer;font-size:.95rem}
+button:disabled{opacity:.5;cursor:not-allowed}
+button.secondary{background:#334155}
+label{font-size:.85rem;color:var(--muted);display:flex;align-items:center;gap:6px}
+#log{margin-top:16px;font-size:.85rem;max-height:320px;overflow:auto;white-space:pre-wrap;background:#0f172a;padding:12px;border-radius:8px;border:1px solid #1e293b}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.75rem;font-weight:600}
+.badge.ok{background:#14532d;color:var(--ok)}.badge.err{background:#7f1d1d;color:var(--err)}.badge.run{background:#312e81;color:#a5b4fc}
+a{color:#818cf8}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Angvey Agent OS</h1>
+  <p class="sub">Model-agnostic agent runtime — plan · execute · observe · verify. Live demo with Groq + web crawler.</p>
+  <div class="card">
+    <textarea id="goal" placeholder="e.g. Search for AI agent architectures and write a short report">Search for recent AI agent architecture patterns and summarize the top 3 approaches.</textarea>
+    <div class="row">
+      <button id="run">Run agent</button>
+      <button class="secondary" id="mock">Run mock</button>
+      <label><input type="checkbox" id="useMock"/> Force mock</label>
+    </div>
+    <div id="status" style="margin-top:12px"></div>
+    <div id="log"></div>
+  </div>
+  <p style="margin-top:16px;font-size:.8rem;color:var(--muted)">API: <code>POST /api/agent/run</code> · <a href="/health">/health</a> · <a href="/api/tools">/api/tools</a></p>
+</div>
+<script>
+const logEl = document.getElementById('log');
+const statusEl = document.getElementById('status');
+function log(msg){ logEl.textContent += msg + '\n'; logEl.scrollTop = logEl.scrollHeight; }
+async function run(mock){
+  const goal = document.getElementById('goal').value.trim();
+  if(!goal) return alert('Enter a goal');
+  document.getElementById('run').disabled = true;
+  document.getElementById('mock').disabled = true;
+  logEl.textContent = '';
+  statusEl.innerHTML = '<span class="badge run">running…</span>';
+  try {
+    const res = await fetch('/api/agent/run', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ goal, mock: mock || document.getElementById('useMock').checked, max_iters: 6 })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(JSON.stringify(data));
+    statusEl.innerHTML = `<span class="badge ${data.status==='completed'?'ok':'err'}">${data.status}</span> · model: ${data.model||'—'} · tokens: ${JSON.stringify(data.tokens||{})}`;
+    log('Task: ' + data.task_id);
+    (data.events||[]).forEach(e => log(`[${e.kind}] ${typeof e.detail==='string'?e.detail:JSON.stringify(e.detail).slice(0,200)}`));
+    if(data.result) log('\n--- RESULT ---\n' + data.result);
+    if(data.errors&&data.errors.length) log('\nErrors: ' + data.errors.join('; '));
+  } catch(e) {
+    statusEl.innerHTML = '<span class="badge err">error</span>';
+    log(String(e));
+  } finally {
+    document.getElementById('run').disabled = false;
+    document.getElementById('mock').disabled = false;
+  }
+}
+document.getElementById('run').onclick = () => run(false);
+document.getElementById('mock').onclick = () => run(true);
+</script>
+</body>
+</html>
