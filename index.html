@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Angvey — Agent Operating System</title>
+  <meta name="description" content="Angvey is a complete, model-agnostic Agent Operating System. LLM is the brain. Angvey is the body, memory, tools, skills, planning, execution, observation, learning and security." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="nav" id="nav">
+    <div class="nav-inner">
+      <a href="#hero" class="logo">
+        <span class="logo-mark">A</span>
+        <span class="logo-text">Angvey</span>
+      </a>
+      <div class="nav-links">
+        <a href="#vision">Vision</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#features">Features</a>
+        <a href="#demo">Demo</a>
+        <a href="#roadmap">Roadmap</a>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="openApp()">Launch Agent</button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="hero" id="hero">
+    <div class="hero-bg"></div>
+    <div class="container hero-content">
+      <div class="badge">Agent Operating System · Model-Agnostic</div>
+      <h1>
+        LLM = Brain<br />
+        <span class="gradient-text">Angvey = Body + Memory + Tools</span>
+      </h1>
+      <p class="hero-sub">
+        A complete Personal AI Work Agent. Not a chatbot with tools bolted on.
+        A true Agent OS that plans, executes, observes, verifies, learns and delivers —
+        independent of any single model provider.
+      </p>
+      <div class="hero-cta">
+        <button class="btn btn-primary btn-lg" onclick="openApp()">Try the Demo</button>
+        <a href="#architecture" class="btn btn-ghost btn-lg">View Architecture</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat">
+          <div class="stat-value">Model-Agnostic</div>
+          <div class="stat-label">Swap Groq → Gemini → Angvey-LLM</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">Full Lifecycle</div>
+          <div class="stat-label">Plan · Execute · Observe · Learn</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">Permissioned</div>
+          <div class="stat-label">Safety & secrets from Day 1</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Vision -->
+  <section class="section" id="vision">
+    <div class="container">
+      <div class="section-header">
+        <h2>The Core Principle</h2>
+        <p>Build the OS first. Continuously improve the brain.</p>
+      </div>
+      <div class="vision-grid">
+        <div class="vision-card">
+          <div class="vision-icon">🧠</div>
+          <h3>LLM = Brain</h3>
+          <p>Any model can power reasoning. Groq, Gemini, OpenAI-compatible, local models, or future Angvey-LLM — all plug in through a strict interface.</p>
+        </div>
+        <div class="vision-card">
+          <div class="vision-icon">⚙️</div>
+          <h3>Angvey = Body</h3>
+          <p>Memory, tools, skills, planning, execution, observation, reflection, learning and security form a complete operating system for work.</p>
+        </div>
+        <div class="vision-card">
+          <div class="vision-icon">🔄</div>
+          <h3>Provider Independence</h3>
+          <p>Change the model without redesigning Planner, Executor, Memory, Tools, Security, UI or Workflows.</p>
+        </div>
+      </div>
+      <blockquote class="quote">
+        “The user should not have to think: ‘Which tool should I use?’ They should simply say: ‘Angvey, get this done.’”
+        <cite>— Lakshay, Founder</cite>
+      </blockquote>
+    </div>
+  </section>
+
+  <!-- Architecture -->
+  <section class="section section-alt" id="architecture">
+    <div class="container">
+      <div class="section-header">
+        <h2>Core Architecture</h2>
+        <p>Layered, modular, and built for long-running multi-step work.</p>
+      </div>
+      <div class="arch-diagram">
+        <div class="arch-layer arch-user">USER · Text / Voice / Files</div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-layer">INPUT / CONTEXT · Intent + Context</div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-layer arch-core">AGENT ORCHESTRATOR · State + Task Manager</div>
+        <div class="arch-split">
+          <div class="arch-branch">
+            <div class="arch-layer">PLANNER<br /><small>Goal → Steps</small></div>
+          </div>
+          <div class="arch-branch">
+            <div class="arch-layer">MEMORY<br /><small>Short / Long-term</small></div>
+          </div>
+        </div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-layer">EXECUTION · Tool / Skill Call</div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-layer">TOOLS · APIs / Web / OS / Files / Browser / Apps</div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-layer">OBSERVATION · Result / Error</div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-layer">REFLECTION · Verify / Retry / Learn / Adapt</div>
+        <div class="arch-arrow">↓</div>
+        <div class="arch-layer arch-deliver">DELIVERY · Result to User</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-header">
+        <h2>Built as an Agent OS</h2>
+        <p>Every major capability is an interface first — so the system grows without breaking the core.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <h3>Pluggable Model Layer</h3>
+          <p>ModelProvider interface: Groq, Gemini, OpenAI-compatible, Local, Angvey-LLM, Mock. The rest of the agent never knows which model is active.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Agent Orchestrator</h3>
+          <p>Full task lifecycle: Request → Understand → Plan → Permissions → Execute → Observe → Verify → Retry/Replan → Store Learning → Deliver. Persistent task state for long-running work.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Intelligent Planner</h3>
+          <p>Sequential, conditional, loop and parallel workflows. Dynamic replanning on tool failure with alternatives.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Universal Tool Registry</h3>
+          <p>Web, Browser, Files, Code, Git, Database, HTTP, Communication, Data, OS — all with schemas, permissions, risk levels, timeouts and retry policies.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Skill System</h3>
+          <p>Skills compose tools into reusable capabilities: Research, Coding, Debugging, Data Analysis, Document Creation, Automation and more.</p>
+        </div>
+        <div class="feature-card">
+          <h3>First-Class Memory</h3>
+          <p>Working, Conversation, Task, Preference, Long-term, Episodic, Semantic and Tool/Failure memory — with store, retrieve, summarize, rank and expire.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Learning from Failure</h3>
+          <p>Failures are reflected, recorded and retrieved so future tasks execute better. Integrated with robustness architecture.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Reflection & Verification</h3>
+          <p>Never assume tool results are correct. Observe → Verify → Success or Retry/Replan. File existence, test runs, cross-checks.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Permission & Safety</h3>
+          <p>READ / WRITE / EXECUTE / COMMUNICATE / FINANCIAL / ADMIN. Confirmation for high-risk actions. Secrets isolated from the LLM.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Event & Workflow Engine</h3>
+          <p>Time, webhook, email, file, website, calendar triggers. Natural language → Workflow → Automation. Independent of the LLM.</p>
+        </div>
+        <div class="feature-card">
+          <h3>Observability</h3>
+          <p>Structured telemetry for every task: tokens, latency, tool calls, errors, retries, cost. Developer mode for full execution traces.</p>
+        </div>
+        <div class="feature-card">
+          <h3>API-First</h3>
+          <p>Clean interfaces for agent, tasks, tools, skills, memory, workflows, automations, models, files, events — ready for web, mobile, desktop and developer platforms.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Demo App Section -->
+  <section class="section section-alt" id="demo">
+    <div class="container">
+      <div class="section-header">
+        <h2>Experience the Agent</h2>
+        <p>Type a task. Watch Angvey plan, execute tools, verify and deliver.</p>
+      </div>
+      <div class="demo-window">
+        <div class="demo-titlebar">
+          <div class="demo-dots">
+            <span></span><span></span><span></span>
+          </div>
+          <span class="demo-title">Angvey Agent</span>
+          <button class="btn btn-sm btn-ghost" onclick="openApp()">Open Full App</button>
+        </div>
+        <div class="demo-body" id="demo-body">
+          <div class="demo-intro" id="demo-intro">
+            <h3>What do you want done?</h3>
+            <div class="demo-input-row">
+              <input type="text" id="demo-input" placeholder="e.g. Research AI agent architectures and create a report" />
+              <button class="btn btn-primary" onclick="runDemo()">Run</button>
+            </div>
+            <div class="demo-chips">
+              <button class="chip" onclick="setDemo('Research AI agent architectures and create a report')">Research</button>
+              <button class="chip" onclick="setDemo('Analyze this CSV and summarize trends')">Analyze</button>
+              <button class="chip" onclick="setDemo('Create a weekly research automation for competitor news')">Automate</button>
+              <button class="chip" onclick="setDemo('Debug the failing test suite and fix the code')">Code</button>
+            </div>
+          </div>
+          <div class="demo-run hidden" id="demo-run">
+            <div class="demo-task-header">
+              <div>
+                <div class="demo-task-label">Task</div>
+                <div class="demo-task-goal" id="demo-goal">—</div>
+              </div>
+              <div class="demo-status" id="demo-status">Planning…</div>
+            </div>
+            <div class="demo-steps" id="demo-steps"></div>
+            <div class="demo-result hidden" id="demo-result">
+              <div class="demo-result-header">✓ Completed</div>
+              <div class="demo-result-body" id="demo-result-body"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Roadmap -->
+  <section class="section" id="roadmap">
+    <div class="container">
+      <div class="section-header">
+        <h2>10-Year Trajectory</h2>
+        <p>Designed so today’s limitations are never hardcoded into the architecture.</p>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-year">2026</div>
+          <div class="timeline-content">
+            <h3>AI Work Agent</h3>
+            <p>Multi-step planning, tool use, verification, memory and basic automations. Model-agnostic core.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">2027</div>
+          <div class="timeline-content">
+            <h3>Personal Automation Platform</h3>
+            <p>Event-driven workflows, richer integrations, scheduled research and reporting.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">2028</div>
+          <div class="timeline-content">
+            <h3>Multi-Agent Work System</h3>
+            <p>Specialized agents under a supervisor — research, coding, browser, data, verification.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">2029</div>
+          <div class="timeline-content">
+            <h3>Personal AI Operating Layer</h3>
+            <p>Deep OS and app control, local fallbacks, stronger personal context and preferences.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-year">2030+</div>
+          <div class="timeline-content">
+            <h3>Model-Independent Execution Platform</h3>
+            <p>Angvey-LLM optional. The Agent OS remains the durable layer that gets work done.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Definition of Done -->
+  <section class="section section-alt">
+    <div class="container">
+      <div class="section-header">
+        <h2>Definition of Done</h2>
+        <p>Architecture is ready when these capabilities exist and are tested.</p>
+      </div>
+      <div class="dod-grid">
+        <div class="dod-item"><span class="dod-num">01</span> Swap models without rewriting the agent</div>
+        <div class="dod-item"><span class="dod-num">02</span> Multi-step task execution</div>
+        <div class="dod-item"><span class="dod-num">03</span> Dynamic tool calling via schemas</div>
+        <div class="dod-item"><span class="dod-num">04</span> Recovery from tool failures</div>
+        <div class="dod-item"><span class="dod-num">05</span> Verification of work</div>
+        <div class="dod-item"><span class="dod-num">06</span> Useful long-term memory</div>
+        <div class="dod-item"><span class="dod-num">07</span> Create & run workflows</div>
+        <div class="dod-item"><span class="dod-num">08</span> Scheduled / event automations</div>
+        <div class="dod-item"><span class="dod-num">09</span> Permission boundaries</div>
+        <div class="dod-item"><span class="dod-num">10</span> Secrets isolated from LLM</div>
+        <div class="dod-item"><span class="dod-num">11</span> Sandboxed tool execution</div>
+        <div class="dod-item"><span class="dod-num">12</span> Full observability</div>
+        <div class="dod-item"><span class="dod-num">13</span> Automated tests on critical paths</div>
+        <div class="dod-item"><span class="dod-num">14</span> Support for local & Angvey-LLM</div>
+        <div class="dod-item"><span class="dod-num">15</span> End-to-end demo: NL → plan → tools → verify → result</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-brand">
+        <span class="logo-mark">A</span>
+        <span>Angvey</span>
+      </div>
+      <p>Agent Operating System · Model-Agnostic · Built for real work</p>
+      <p class="footer-copy">© 2026 Angvey. Architecture by Lakshay.</p>
+    </div>
+  </footer>
+
+  <!-- Full App Overlay -->
+  <div class="app-overlay hidden" id="app-overlay">
+    <div class="app-shell">
+      <aside class="app-sidebar">
+        <div class="app-logo">
+          <span class="logo-mark">A</span>
+          <span>Angvey</span>
+        </div>
+        <nav class="app-nav">
+          <button class="app-nav-item active" data-view="home">Home</button>
+          <button class="app-nav-item" data-view="tasks">Tasks</button>
+          <button class="app-nav-item" data-view="automations">Automations</button>
+          <button class="app-nav-item" data-view="memory">Memory</button>
+          <button class="app-nav-item" data-view="files">Files</button>
+          <button class="app-nav-item" data-view="tools">Tools</button>
+          <button class="app-nav-item" data-view="skills">Skills</button>
+          <button class="app-nav-item" data-view="settings">Settings</button>
+        </nav>
+        <button class="btn btn-ghost btn-sm app-close" onclick="closeApp()">← Back to site</button>
+      </aside>
+      <main class="app-main">
+        <div class="app-view active" id="view-home">
+          <h2 class="app-heading">What do you want done?</h2>
+          <div class="app-input-area">
+            <textarea id="app-input" rows="3" placeholder="Describe the work… Research, create, analyze, automate…"></textarea>
+            <div class="app-input-actions">
+              <div class="app-quick">
+                <button class="chip" onclick="quickTask('Research AI agent architectures and produce a structured report with sources')">Research</button>
+                <button class="chip" onclick="quickTask('Create a product requirements document for a new feature')">Create</button>
+                <button class="chip" onclick="quickTask('Analyze recent competitor announcements and highlight changes')">Analyze</button>
+                <button class="chip" onclick="quickTask('Set up a weekly research automation for this topic')">Plan</button>
+              </div>
+              <button class="btn btn-primary" onclick="runAppTask()">Start Task</button>
+            </div>
+          </div>
+          <div class="app-live hidden" id="app-live">
+            <div class="app-live-header">
+              <div>
+                <div class="label">Current Task</div>
+                <div id="app-task-goal" class="app-task-goal"></div>
+              </div>
+              <div id="app-task-status" class="status-pill">Planning</div>
+            </div>
+            <div class="app-timeline" id="app-timeline"></div>
+            <div class="app-output hidden" id="app-output">
+              <div class="label">Result</div>
+              <div id="app-output-body" class="app-output-body"></div>
+            </div>
+          </div>
+        </div>
+        <div class="app-view" id="view-tasks">
+          <h2 class="app-heading">Tasks</h2>
+          <div class="app-list" id="tasks-list">
+            <div class="empty-state">No tasks yet. Start one from Home.</div>
+          </div>
+        </div>
+        <div class="app-view" id="view-automations">
+          <h2 class="app-heading">Automations</h2>
+          <div class="app-list">
+            <div class="list-card">
+              <div class="list-card-title">Weekly Research — AI Agents</div>
+              <div class="list-card-meta">Trigger: Every Monday 09:00 · Status: Active</div>
+            </div>
+            <div class="list-card">
+              <div class="list-card-title">Competitor page monitor</div>
+              <div class="list-card-meta">Trigger: Website change · Status: Paused</div>
+            </div>
+          </div>
+        </div>
+        <div class="app-view" id="view-memory">
+          <h2 class="app-heading">Memory</h2>
+          <div class="app-list">
+            <div class="list-card">
+              <div class="list-card-title">Preferred report format</div>
+              <div class="list-card-meta">User Preference · Markdown with sources</div>
+            </div>
+            <div class="list-card">
+              <div class="list-card-title">Tool failure: web_search rate limit</div>
+              <div class="list-card-meta">Learning · Prefer staggered retries + alternative provider</div>
+            </div>
+          </div>
+        </div>
+        <div class="app-view" id="view-files">
+          <h2 class="app-heading">Files</h2>
+          <div class="app-list">
+            <div class="list-card">
+              <div class="list-card-title">AI_Agent_Architectures_Report.md</div>
+              <div class="list-card-meta">Generated · 2 min ago</div>
+            </div>
+          </div>
+        </div>
+        <div class="app-view" id="view-tools">
+          <h2 class="app-heading">Tools</h2>
+          <div class="tools-grid">
+            <div class="tool-chip">web_search</div>
+            <div class="tool-chip">fetch_webpage</div>
+            <div class="tool-chip">extract_content</div>
+            <div class="tool-chip">browser_navigate</div>
+            <div class="tool-chip">file_read</div>
+            <div class="tool-chip">file_write</div>
+            <div class="tool-chip">parse_pdf</div>
+            <div class="tool-chip">code_run</div>
+            <div class="tool-chip">git_clone</div>
+            <div class="tool-chip">http_request</div>
+            <div class="tool-chip">db_query</div>
+            <div class="tool-chip">send_notification</div>
+          </div>
+        </div>
+        <div class="app-view" id="view-skills">
+          <h2 class="app-heading">Skills</h2>
+          <div class="app-list">
+            <div class="list-card"><div class="list-card-title">Research Topic</div><div class="list-card-meta">Search → Collect → Evaluate → Synthesize → Cite</div></div>
+            <div class="list-card"><div class="list-card-title">Document Creation</div><div class="list-card-meta">Structure → Write → Format → Verify</div></div>
+            <div class="list-card"><div class="list-card-title">Coding & Debug</div><div class="list-card-meta">Read → Edit → Test → Fix → Re-test</div></div>
+            <div class="list-card"><div class="list-card-title">Data Analysis</div><div class="list-card-meta">Load → Clean → Analyze → Visualize → Report</div></div>
+          </div>
+        </div>
+        <div class="app-view" id="view-settings">
+          <h2 class="app-heading">Settings</h2>
+          <div class="settings-block">
+            <label>Active Model Provider</label>
+            <select id="model-select">
+              <option>Groq (llama-3.3-70b)</option>
+              <option>Gemini 2.0 Flash</option>
+              <option>Mock Provider</option>
+              <option disabled>Angvey-LLM (coming)</option>
+            </select>
+          </div>
+          <div class="settings-block">
+            <label>Permission Level</label>
+            <select>
+              <option>Standard (confirm high-risk)</option>
+              <option>Strict (confirm write & communicate)</option>
+              <option>Admin (with explicit auth)</option>
+            </select>
+          </div>
+          <p class="settings-note">Secrets and credentials are never exposed to the model. Only credential references are used.</p>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
