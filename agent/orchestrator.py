@@ -11,12 +11,7 @@ from memory.store import MemoryStore
 from agent.state import TaskState, TaskStatus
 
 
-def _approx_tokens(text: str) -> int:
-    return max(1, len(text) // 4)
-
-
 def prune_messages(messages: list[Message], max_chars: int = 24000) -> list[Message]:
-    """Keep system + recent messages under approximate char budget."""
     if not messages:
         return messages
     system = [m for m in messages if m.role == "system"]
@@ -24,7 +19,6 @@ def prune_messages(messages: list[Message], max_chars: int = 24000) -> list[Mess
     total = sum(len(m.content or "") for m in messages)
     if total <= max_chars:
         return messages
-    # Keep last N that fit
     kept = []
     budget = max_chars - sum(len(m.content or "") for m in system) - 500
     for m in reversed(rest):
@@ -75,7 +69,7 @@ class Orchestrator:
             self._emit("iteration", {"i": it, "msgs": len(messages)})
 
             try:
-                resp: ModelResponse = self.model.chat(
+                resp: ModelResponse = self.model.generate(
                     messages,
                     tools=self.tools.list_schemas(),
                     max_tokens=800,
@@ -85,7 +79,6 @@ class Orchestrator:
                 task.errors.append(err)
                 task.event("error", err)
                 self._emit("error", err)
-                # backoff on rate limit
                 if "429" in str(e) or "rate" in str(e).lower():
                     time.sleep(2 + it)
                     continue
@@ -115,26 +108,28 @@ class Orchestrator:
                             args = {}
                     self._emit("tool_call", {"name": name, "args": args})
                     result = self.tools.call(name, args)
+                    ok = getattr(result, "success", getattr(result, "ok", False))
+                    out = result.output
+                    if not isinstance(out, str):
+                        out = json.dumps(out, default=str) if out is not None else ""
                     obs = {
                         "tool": name,
                         "args": args,
-                        "ok": result.ok,
-                        "output": (result.output or "")[:3500],
+                        "ok": ok,
+                        "output": out[:3500],
                         "error": result.error,
                     }
-                    task.tool_calls.append({"name": name, "args": args, "ok": result.ok})
+                    task.tool_calls.append({"name": name, "args": args, "ok": ok})
                     task.observations.append(obs)
                     task.event("tool", obs)
                     self._emit("tool_result", obs)
-                    tool_msg = f"Tool {name} -> ok={result.ok}\n{(result.output or result.error or '')[:3500]}"
+                    tool_msg = f"Tool {name} -> ok={ok}\n{(out or result.error or '')[:3500]}"
                     messages.append(Message(role="user", content=tool_msg))
-                    # nudge after write_file
-                    if name == "write_file" and result.ok:
+                    if name == "write_file" and ok:
                         messages.append(Message(role="user", content="File written. If the goal is complete, provide the final answer now and stop calling tools."))
                 task.save()
                 continue
 
-            # No tool calls — check if final
             if resp.content and any(k in (resp.content or "").lower() for k in ["final", "done", "completed", "summary", "report"]):
                 task.status = TaskStatus.COMPLETED
                 task.result = resp.content
@@ -144,7 +139,6 @@ class Orchestrator:
                 return task
 
             if not resp.tool_calls and resp.content:
-                # treat as final answer after a couple iterations
                 if it >= 2:
                     task.status = TaskStatus.COMPLETED
                     task.result = resp.content
@@ -160,11 +154,11 @@ class Orchestrator:
         return task
 
     def _build_system(self) -> str:
-        tool_desc = self.tools.describe()
+        tool_desc = self.tools.describe() if hasattr(self.tools, "describe") else ""
         return (
             "You are Angvey, a model-agnostic Agent OS. "
             "You plan, execute tools, observe results, and verify. "
-            "Use tools when needed. Prefer web_search then fetch_url for research. "
+            "Use tools when needed. Prefer web_search then fetch_webpage for research. "
             "Write important outputs with write_file. "
             "Keep responses concise. When the goal is satisfied, give a clear final answer.\n\n"
             f"Available tools:\n{tool_desc}"
