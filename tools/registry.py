@@ -1,7 +1,9 @@
 """Universal tool registry. LLM discovers tools via schemas."""
 from __future__ import annotations
+
 from typing import Any, Callable, Optional
 from pydantic import BaseModel, Field
+
 
 class ToolSpec(BaseModel):
     name: str
@@ -11,11 +13,13 @@ class ToolSpec(BaseModel):
     risk_level: str = "low"
     timeout: int = 30
 
+
 class ToolResult(BaseModel):
     success: bool
     output: Any = None
     error: Optional[str] = None
     error_class: Optional[str] = None
+
 
 class ToolRegistry:
     def __init__(self):
@@ -27,7 +31,14 @@ class ToolRegistry:
     def list_schemas(self) -> list[dict]:
         schemas = []
         for name, (spec, _) in self._tools.items():
-            schemas.append({"type": "function", "function": {"name": spec.name, "description": spec.description, "parameters": spec.input_schema}})
+            schemas.append({
+                "type": "function",
+                "function": {
+                    "name": spec.name,
+                    "description": spec.description,
+                    "parameters": spec.input_schema,
+                },
+            })
         return schemas
 
     def get(self, name: str) -> Optional[tuple[ToolSpec, Callable]]:
@@ -52,3 +63,12 @@ class ToolRegistry:
             err = str(e).lower()
             cls = "NETWORK" if any(x in err for x in ("timeout", "connection", "network", "dns")) else "TOOL_BUG"
             return ToolResult(success=False, error=str(e), error_class=cls)
+
+    def describe(self) -> str:
+        lines = []
+        for name, (spec, _) in self._tools.items():
+            lines.append(f"- {name}: {spec.description}")
+        return "\n".join(lines) or "(no tools)"
+
+    def call(self, name: str, arguments: dict) -> ToolResult:
+        return self.execute(name, arguments)
