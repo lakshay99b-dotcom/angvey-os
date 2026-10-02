@@ -7,11 +7,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-app = FastAPI(title="Angvey Agent OS", version="0.4.3")
+app = FastAPI(title="Angvey Agent OS", version="0.4.4")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
-HEADERS = {"User-Agent": "AngveyResearchBot/0.4.3", "Accept": "application/json"}
+HEADERS = {"User-Agent": "AngveyResearchBot/0.4.4", "Accept": "application/json"}
 HTML_HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/121.0.0.0 Safari/537.36"}
-WIKI_HEADERS = {"User-Agent": "AngveyResearchBot/0.4.3 (public research; https://angvey-agent.vercel.app)"}
+WIKI_HEADERS = {"User-Agent": "AngveyResearchBot/0.4.4 (public research; https://angvey-agent.vercel.app)"}
 DEFAULT_MODEL = "qwen/qwen3.8-27b"
 FALLBACK_MODELS = ["openai/gpt-oss-20b", "openai/gpt-oss-120b", "qwen/qwen3.8-27b"]
 
@@ -20,13 +20,10 @@ OFFICIAL_DOCS = {
     "crewai": [{"title": "CrewAI Docs", "url": "https://docs.crewai.com/", "blurb": "Crews and flows"}],
     "autogen": [{"title": "AutoGen Docs", "url": "https://microsoft.github.io/autogen/", "blurb": "Multi-agent framework"}],
 }
-
 PATTERN_LIBRARY = [
     {"keys": ["react", "reasoning", "acting", "architecture", "agent pattern", "agent architecture"], "title": "ReAct (arXiv:2210.03629)", "url": "https://arxiv.org/abs/2210.03629", "snippet": "Thought-action-observation agent loop"},
     {"keys": ["plan", "execute", "planner", "architecture", "agent"], "title": "LangChain agent executor", "url": "https://python.langchain.com/docs/how_to/agent_executor/", "snippet": "Plan/execute style agents"},
     {"keys": ["multi-agent", "multi agent", "orchestrat", "supervisor", "architecture"], "title": "AutoGen multi-agent", "url": "https://microsoft.github.io/autogen/", "snippet": "Multi-agent orchestration"},
-    {"keys": ["multi-agent", "crew", "architecture"], "title": "CrewAI docs", "url": "https://docs.crewai.com/", "snippet": "Role-based crews"},
-    {"keys": ["langgraph", "graph", "architecture", "state"], "title": "LangGraph overview", "url": "https://docs.langchain.com/oss/python/langgraph/overview", "snippet": "Graph orchestration"},
     {"keys": ["architecture", "agent pattern", "tool", "agent architecture"], "title": "Anthropic: Building effective agents", "url": "https://www.anthropic.com/engineering/building-effective-agents", "snippet": "Practical agent patterns"},
 ]
 
@@ -51,30 +48,36 @@ def _registry_hits(query: str) -> list:
 
 def _wikipedia_search(query: str, max_results: int = 5) -> list:
     results = []
+    stop = {"who", "is", "her", "his", "the", "and", "height", "age", "what", "a", "an", "how", "tall", "about"}
     try:
-        with httpx.Client(timeout=12) as c:
-            r = c.get("https://en.wikipedia.org/w/api.php", params={"action": "query", "list": "search", "srsearch": query[:200], "srlimit": max_results, "format": "json"}, headers=WIKI_HEADERS)
-            if r.status_code != 200:
-                return results
-            for hit in r.json().get("query", {}).get("search", [])[:max_results]:
-                title = hit.get("title") or ""
-                snippet = re.sub(r"<[^>]+>", "", hit.get("snippet") or "")
-                url = "https://en.wikipedia.org/wiki/" + title.replace(" ", "_")
-                results.append({"title": title, "url": url, "snippet": snippet[:220], "source": "wikipedia", "query": query})
-            if results:
-                slug = results[0]["title"].replace(" ", "_")
+        with httpx.Client(timeout=15, follow_redirects=True) as c:
+            words = [w for w in re.findall(r"[A-Za-z0-9]+", query) if w.lower() not in stop]
+            for slug in (["_".join(words[:6]), "_".join(w.capitalize() for w in words[:6])] if words else []):
                 try:
                     sr = c.get(f"https://en.wikipedia.org/api/rest_v1/page/summary/{slug}", headers=WIKI_HEADERS)
                     if sr.status_code == 200:
                         d = sr.json()
-                        results[0]["snippet"] = (d.get("extract") or results[0]["snippet"])[:400]
-                        if d.get("description"):
-                            results[0]["title"] = f"{results[0]['title']} — {d.get('description')}"
+                        if d.get("type") == "disambiguation":
+                            continue
+                        title = d.get("title") or slug
+                        extract = (d.get("extract") or "")[:400]
+                        if extract:
+                            page = (d.get("content_urls") or {}).get("desktop", {}).get("page") or f"https://en.wikipedia.org/wiki/{title.replace(' ', '_')}"
+                            results.append({"title": f"{title} — {d.get('description') or 'Wikipedia'}", "url": page, "snippet": extract, "source": "wikipedia", "query": query})
+                            break
                 except Exception:
                     pass
+            r = c.get("https://en.wikipedia.org/w/api.php", params={"action": "query", "list": "search", "srsearch": query[:200], "srlimit": max_results, "format": "json"}, headers=WIKI_HEADERS)
+            if r.status_code == 200:
+                for hit in r.json().get("query", {}).get("search", [])[:max_results]:
+                    title = hit.get("title") or ""
+                    snippet = re.sub(r"<[^>]+", "", hit.get("snippet") or "")
+                    url = "https://en.wikipedia.org/wiki/" + title.replace(" ", "_")
+                    if not any(x.get("url") == url for x in results):
+                        results.append({"title": title, "url": url, "snippet": snippet[:220], "source": "wikipedia", "query": query})
     except Exception:
         pass
-    return results
+    return results[:max_results]
 
 def _github_search(query: str, max_results: int = 5) -> list:
     results = []
@@ -88,20 +91,6 @@ def _github_search(query: str, max_results: int = 5) -> list:
         pass
     return results
 
-def _hn_search(query: str, max_results: int = 5) -> list:
-    results = []
-    try:
-        with httpx.Client(timeout=12) as c:
-            r = c.get("https://hn.algolia.com/api/v1/search", params={"query": query[:100], "tags": "story", "hitsPerPage": max_results}, headers=HEADERS)
-            if r.status_code == 200:
-                for h in r.json().get("hits", [])[:max_results]:
-                    url = h.get("url") or (f"https://news.ycombinator.com/item?id={h.get('objectID')}" if h.get("objectID") else None)
-                    if url:
-                        results.append({"title": h.get("title") or "HN", "url": url, "snippet": f"pts={h.get('points')}", "source": "hackernews", "query": query})
-    except Exception:
-        pass
-    return results
-
 def web_search(query: str, max_results: int = 8):
     max_results = max(1, min(int(max_results or 8), 10))
     results, q = [], _sanitize(query)
@@ -110,18 +99,15 @@ def web_search(query: str, max_results: int = 8):
         for h in items or []:
             if h.get("url") and not any(r.get("url") == h["url"] for r in results):
                 results.append(h)
-    add(_pattern_hits(query)); add(_pattern_hits(q)); add(_registry_hits(q))
+    add(_pattern_hits(query)); add(_registry_hits(q))
     add(_wikipedia_search(q, 5)); add(_wikipedia_search(short, 5))
-    for fn, arg in [(_github_search, short), (_hn_search, short)]:
-        try:
-            add(fn(arg, 5))
-        except Exception:
-            pass
-        if len(results) >= max_results:
-            break
+    try:
+        add(_github_search(short, 4))
+    except Exception:
+        pass
     if not results:
         raise RuntimeError("No search results")
-    results.sort(key=lambda h: -{"pattern_library": 95, "official_registry": 100, "wikipedia": 85, "github": 50, "hackernews": 40}.get(h.get("source") or "", 0))
+    results.sort(key=lambda h: -{"pattern_library": 95, "official_registry": 100, "wikipedia": 90, "github": 50}.get(h.get("source") or "", 0))
     return results[:max_results]
 
 def resolve_official_docs(names: str):
@@ -147,7 +133,7 @@ def research_swarm(topic: str, max_scouts: int = 4, max_readers: int = 3):
     topic = (topic or "").strip()
     if not topic: raise ValueError("topic required")
     base = _sanitize(topic)[:100]
-    scout_queries = [base, f"{base} wikipedia", f"{base} biography OR profile", f"{base} facts"][:max_scouts]
+    scout_queries = [base, f"{base} wikipedia", f"{base} biography", f"{base} profile"][:max_scouts]
     bot_log, all_hits = [], []
     def scout(q):
         try:
@@ -173,11 +159,11 @@ def research_swarm(topic: str, max_scouts: int = 4, max_readers: int = 3):
         for fut in as_completed([pool.submit(reader, u) for u in read_urls]):
             rep = fut.result(); bot_log.append({k: v for k, v in rep.items() if k != "page"})
             if rep.get("ok") and rep.get("page"): pages.append(rep["page"])
-    return {"topic": topic, "scouts": len(scout_queries), "readers": len(read_urls), "hits": [{"title": h.get("title"), "url": h.get("url"), "source": h.get("source"), "snippet": (h.get("snippet") or "")[:200]} for h in top], "pages": pages, "bot_log": bot_log, "policy": "public_web_only"}
+    return {"topic": topic, "scouts": len(scout_queries), "readers": len(read_urls), "hits": [{"title": h.get("title"), "url": h.get("url"), "source": h.get("source"), "snippet": (h.get("snippet") or "")[:250]} for h in top], "pages": pages, "bot_log": bot_log, "policy": "public_web_only"}
 
 TOOLS = {
-    "research_swarm": {"schema": {"type": "function", "function": {"name": "research_swarm", "description": "Parallel research bots. Uses Wikipedia + GitHub + HN. Topic-only scouts.", "parameters": {"type": "object", "properties": {"topic": {"type": "string"}, "max_scouts": {"type": "integer", "default": 4}, "max_readers": {"type": "integer", "default": 3}}, "required": ["topic"]}}}, "fn": research_swarm},
-    "web_search": {"schema": {"type": "function", "function": {"name": "web_search", "description": "Wikipedia + GitHub + HN + pattern library (agents only) + docs.", "parameters": {"type": "object", "properties": {"query": {"type": "string"}, "max_results": {"type": "integer", "default": 8}}, "required": ["query"]}}}, "fn": web_search},
+    "research_swarm": {"schema": {"type": "function", "function": {"name": "research_swarm", "description": "Parallel research using Wikipedia + GitHub. Topic-only scouts.", "parameters": {"type": "object", "properties": {"topic": {"type": "string"}, "max_scouts": {"type": "integer", "default": 4}, "max_readers": {"type": "integer", "default": 3}}, "required": ["topic"]}}}, "fn": research_swarm},
+    "web_search": {"schema": {"type": "function", "function": {"name": "web_search", "description": "Wikipedia + GitHub + docs search.", "parameters": {"type": "object", "properties": {"query": {"type": "string"}, "max_results": {"type": "integer", "default": 8}}, "required": ["query"]}}}, "fn": web_search},
     "resolve_official_docs": {"schema": {"type": "function", "function": {"name": "resolve_official_docs", "description": "Official product URLs.", "parameters": {"type": "object", "properties": {"names": {"type": "string"}}, "required": ["names"]}}}, "fn": resolve_official_docs},
     "fetch_webpage": {"schema": {"type": "function", "function": {"name": "fetch_webpage", "description": "Fetch public page text.", "parameters": {"type": "object", "properties": {"url": {"type": "string"}, "max_chars": {"type": "integer", "default": 3000}}, "required": ["url"]}}}, "fn": fetch_webpage},
 }
@@ -214,7 +200,7 @@ def groq_chat(messages, tools=None, max_tokens=900, tool_choice="auto"):
             raise
     raise last or RuntimeError("Groq failed")
 
-SYSTEM = "You are Angvey Agent OS. Prefer research_swarm or web_search. Cite title+URL from tool evidence only. Public web only. After evidence, stop tools and answer. Do not invent sources."
+SYSTEM = "You are Angvey Agent OS. Prefer research_swarm. Cite title+URL from tool evidence only. If height/age not in evidence, say so. Public web only."
 
 def run_agent(goal, max_iters=6, verify=True):
     task_id = str(uuid.uuid4()); phases, events, tlog, evidence_chunks = [], [], [], []
@@ -243,12 +229,12 @@ def run_agent(goal, max_iters=6, verify=True):
                 events.append({"kind": "tool_call", "detail": {"name": name, "arguments": args}})
                 result = run_tool(name, args); tlog.append({"name": name, "arguments": args, "ok": result.get("ok")})
                 if result.get("ok"): ok_tools += 1
-                events.append({"kind": "tool_result", "detail": {"name": name, "ok": result.get("ok"), "preview": str(result.get("output") or result.get("error"))[:250]}})
+                events.append({"kind": "tool_result", "detail": {"name": name, "ok": result.get("ok"), "preview": str(result.get("output") or result.get("error"))[:280]}})
                 if name == "research_swarm" and result.get("ok") and isinstance(result.get("output"), dict):
                     for bl in (result["output"].get("bot_log") or [])[:10]: events.append({"kind": "bot", "detail": bl})
                 payload = result.get("output") if result.get("ok") else {"error": result.get("error")}
                 content = json.dumps(payload, ensure_ascii=False, default=str)
-                if result.get("ok"): evidence_chunks.append(content[:3000])
+                if result.get("ok"): evidence_chunks.append(content[:3200])
                 if len(content) > 4000: content = content[:4000] + "…"
                 messages.append({"role": "tool", "tool_call_id": tc["id"], "name": name, "content": content})
             continue
@@ -264,7 +250,7 @@ def run_agent(goal, max_iters=6, verify=True):
     phases[-1]["status"] = "done"; phases[-1]["detail"] = f"{len(tlog)} tools"
     phases.append({"id": "synthesize", "label": "Synthesize answer", "status": "done", "detail": draft[:100]})
     phases.append({"id": "deliver", "label": "Deliver", "status": "done", "detail": "done"})
-    return {"task_id": task_id, "status": "completed", "result": draft, "tool_calls": tlog, "tokens": tokens, "errors": [], "model": model_used, "events": events[-40:], "phases": phases, "verification": None, "confidence": 0.75 if evidence_chunks else 0.4, "unique": {"wikipedia": True, "pattern_library": True, "research_swarm": True, "parallel_bots": True, "public_web_only": True}}
+    return {"task_id": task_id, "status": "completed", "result": draft, "tool_calls": tlog, "tokens": tokens, "errors": [], "model": model_used, "events": events[-40:], "phases": phases, "verification": None, "confidence": 0.75 if evidence_chunks else 0.4, "unique": {"wikipedia": True, "research_swarm": True, "parallel_bots": True, "public_web_only": True}}
 
 class RunRequest(BaseModel):
     goal: str; mock: bool = False; max_iters: int = 6; verify: bool = True
@@ -272,7 +258,7 @@ class RunRequest(BaseModel):
 @app.get("/health")
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "service": "angvey-agent-os", "version": "0.4.3", "has_groq_key": bool(os.environ.get("GROQ_API_KEY")), "default_model": DEFAULT_MODEL, "unique_features": ["wikipedia", "pattern_library", "research_swarm", "parallel_bots"], "tools": list(TOOLS.keys()), "search_backends": ["wikipedia", "pattern_library", "github", "hackernews", "official_registry"]}
+    return {"status": "ok", "service": "angvey-agent-os", "version": "0.4.4", "has_groq_key": bool(os.environ.get("GROQ_API_KEY")), "default_model": DEFAULT_MODEL, "unique_features": ["wikipedia", "pattern_library", "research_swarm", "parallel_bots"], "tools": list(TOOLS.keys()), "search_backends": ["wikipedia", "pattern_library", "github", "official_registry"]}
 
 @app.get("/api/tools")
 @app.get("/tools")
@@ -288,4 +274,4 @@ def agent_run(req: RunRequest):
 @app.get("/")
 @app.get("/api")
 def root():
-    return {"service": "angvey-agent-os", "version": "0.4.3", "run": "POST /api/agent/run"}
+    return {"service": "angvey-agent-os", "version": "0.4.4", "run": "POST /api/agent/run"}
