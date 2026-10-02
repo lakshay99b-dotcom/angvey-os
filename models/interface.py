@@ -1,20 +1,25 @@
-"""Model-agnostic provider interface."""
+"""Model-agnostic provider interface. Agent never knows which LLM is used."""
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from typing import Any, Optional
+
 from pydantic import BaseModel, Field
 
+
 class Message(BaseModel):
-    role: str
+    role: str  # system | user | assistant | tool
     content: Optional[str] = None
     name: Optional[str] = None
     tool_call_id: Optional[str] = None
     tool_calls: Optional[list[dict[str, Any]]] = None
 
+
 class ToolCall(BaseModel):
     id: str
     name: str
     arguments: dict[str, Any] = Field(default_factory=dict)
+
 
 class ModelResponse(BaseModel):
     content: Optional[str] = None
@@ -23,10 +28,18 @@ class ModelResponse(BaseModel):
     usage: dict[str, int] = Field(default_factory=dict)
     finish_reason: Optional[str] = None
 
+
 class ModelProvider(ABC):
     @abstractmethod
-    def generate(self, messages: list[Message], tools: Optional[list[dict]] = None, temperature: float = 0.2, max_tokens: int = 800) -> ModelResponse:
+    def generate(
+        self,
+        messages: list[Message],
+        tools: Optional[list[dict]] = None,
+        temperature: float = 0.2,
+        max_tokens: int = 4096,
+    ) -> ModelResponse:
         ...
+
     @property
     @abstractmethod
     def name(self) -> str:
